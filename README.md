@@ -25,14 +25,14 @@ This audio part "should" not require any training, but a pipeline from your end 
 ##### Text:
 You need to select a model that is less than 3B parameters (can be Microsoft's Phi 2 as well, but with random weights, hence training logs are MUST)
 ###### Data:
--- It would be close to impossible to collect ALL the datasets required to train your model. Hence:
--- You are going to use Microsoft's Phi-2 or any other model and generate data. Recommend you generate this data in parallel, don't generate and store everything as that would be a very very large dataset
+-- It would be close to impossible to collect ALL the datasets required to train your model. Hence:  
+-- You are going to use Microsoft's Phi-2 or any other model and generate data. Recommend you generate this data in parallel, don't generate and store everything as that would be a very very large dataset  
 -- You are going to collect "some" clean data (100MB when zipped). This data CAN be generated from Phi-2 and stored.
 ###### Training
--- You are going to use the same tokenizer and other data structures to keep your life simple
--- You are going to use AWS (or an equvalent system) where you are going to train YOUR model. 
--- You are going to train YOUR model (let's say that starts at 10). Train it somehow to reach the "initial loss - 1" value. Compare it with the final Microsoft's Phi 2's value and see how much more you have to train!!! You can stop your training now (but submitting this result is super important, else your Capstone project gets 0)
--- This is proof that if you were to spend more money you'll be able to train it. We'll stop here
+-- You are going to use the same tokenizer and other data structures to keep your life simple  
+-- You are going to use AWS (or an equvalent system) where you are going to train YOUR model.  
+-- You are going to train YOUR model (let's say that starts at 10). Train it somehow to reach the "initial loss - 1" value. Compare it with the final Microsoft's Phi 2's value and see how much more you have to train!!! You can stop your training now (but submitting this result is super important, else your Capstone project gets 0)  
+-- This is proof that if you were to spend more money you'll be able to train it. We'll stop here  
 -- Then you're going to take the default Phi-2 model (Microsoft's version and move to the next step)
 
 #### Deployment:
@@ -40,12 +40,12 @@ Your deployment page should look like ChatGPT only, where you can send in images
 And you're done! :D
 
 ### Implementation and Results:
-The Capstone is project is divided into 2 parts - Phase 1 and Phase 2
+The Capstone is project is implemented in 2 phases - Phase 1 and Phase 2
 ##### Phase 1 - 
-We focus in training phi-2 model from scratch. This is as per the training guidelines for text stated above.
--- We use an untrained phi2 model (random weights), and we train this from scratch using clean dataset - SlimPajama dataset with 6B parameters.
--- File: Phase1/Phi2TrainSlimPajamaFromScratch.ipnyb
--- Special mention - Used this tutorial for training from scratch - https://huggingface.co/learn/nlp-course/chapter7/6?fw=pt
+We focus in training phi-2 model from scratch. This is as per the training guidelines for text stated above.  
+-- We use an untrained phi2 model (random weights), and we train this from scratch using clean dataset - SlimPajama dataset with 6B parameters.  
+-- File: [Phase1/Phi2TrainSlimPajamaFromScratch.ipnyb  ](https://github.com/ToletiSri/TSAI_ERA_Capstone/blob/main/Phase1/Phi2TrainSlimPajamaFromScratch.ipynb)  
+-- Special mention - Used this tutorial for training from scratch - https://huggingface.co/learn/nlp-course/chapter7/6?fw=pt  
 
 ###### Results:
 The loss for the corresponding iteraion number is given below. We see that the loss is reduced by more than 1 point when compared to the inital loss
@@ -70,29 +70,34 @@ The loss for the corresponding iteraion number is given below. We see that the l
     450	           |   6.654300
 -------------------------------------------------------------
 
-###### Todo:
-Use custom generated data as well to train
+###### Phase 1 - Custom Dataset:
+We also tried to generate the custom dataset and train the model with the custom dataset.  
+File - Generate Custom dataset:  
+File - Training with the custom dataset:  
 
 ##### Phase 2 - 
-As part of phase 2, we proceed with our training in the following steps:
--- Step 1:
-Generate image embeddings for the images from Coco 2017 dataset. (This is because the original llava 150k dataset has referred to Coco dataset). We use a CLip model to generate these embeddings.
-File: 
+As part of phase 2, we proceed with our training in the following steps:  
+-- Step 1:  
+Generate image embeddings for the images from Coco 2017 dataset. (This is because the original llava 150k dataset has referred to Coco dataset). We use a CLip model to generate these embeddings.  
+File: [Phase2/GenerateClipEmbeddings]() 
 
 -- Step 2:
-We use the image embeddings obtained from step 1 to train our image projection layer from scratch, as mentioned in the guidelines above for image
-File: Phase2/ProjectionAndPhi2FineTuned.ipnyb
+We use the image embeddings obtained from step 1 to train our image projection layer from scratch.  
+File: [Phase2/ProjectionLayerFromScratch.ipnyb](https://github.com/ToletiSri/TSAI_ERA_Capstone/blob/main/Phase2/ProjectionLayerFromScratch.ipynb)  
 
-Special mention - Image projection layer code referenced from open source code:
-https://github.com/sshh12/multi_token/blob/81ee75cd4435ebd5c7c7c3cf42c136c4053320fb/multi_token/modalities/projectors.py
+Special mention - Image projection layer code referenced from open source code:  
+https://github.com/sshh12/multi_token/blob/81ee75cd4435ebd5c7c7c3cf42c136c4053320fb/multi_token/modalities/projectors.py  
 
--- Step 3:
-We use the now trained projection model and fine tune it along woth phi-2 model, as mentioned in training guidelines for image.
-File: Phase2/ProjectionLayerFromScratch.ipnyb
+Based on this reference, we tried to create 4 token embeddings out of 1 image embedding. The image embedding is of shape [1,512]. We pass this to projection layer to get word token embeddings of shape [4,2560]. We then concatenate these word with the caption of the image and pass this on to the phi-2 model. The captions prediction from phi-2 is evaluated against the ground thruth captions using cross entropy loss. In this step, we have fixed the phi-2 model layers. Our focus is on training the projection layer  
 
-That's it, we now use these models to implement our Hugging face spaces app
 
-Implemented a simple gradio interface on huggingface: 
+-- Step 3:  
+We use the now trained projection model and fine tune it along woth phi-2 model, as mentioned in training guidelines for image.  
+File: [Phase2/ProjectionAndPhi2FineTuned.ipnyb]()  
+
+That's it, we now use these models to implement our Hugging face spaces app  
+
+Implemented a simple gradio interface on huggingface:  
 HF Link: https://huggingface.co/spaces/ToletiSri/Capstone
 
 
